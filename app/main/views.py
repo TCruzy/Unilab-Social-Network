@@ -553,7 +553,8 @@ def check_word(random_word):
     else:
         flash('Incorrect! A new word appeared on the screen', 'danger')
         return redirect(url_for('main.play_for_earn'))
-    
+   
+   
        
 @main_bp.route('/anonymous')
 @login_required
