@@ -1,0 +1,32 @@
+{% extends "main.html" %}
+
+{% block content %}
+<div class='leaderboard'>
+  <h1>Top 5 Member</h1>
+</div>
+<table class="table table-dark" style='width: 35%;margin-left:32%;margin-top:5%;'>
+  <thead>
+    <tr>
+      <th scope="col">Position</th>
+      <th scope="col">Username</th>
+      <th scope="col">Flask Coin</th>
+      <th scope="col">Posts</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for user in users %}
+    <tr>
+      <th scope="row">{{loop.index}}</th>
+      <td>
+      <a href="{{ url_for('main.users_profile', user_id=user['user'].id) }}">
+        <img src="{{user['user'].user_image}}" alt="pfp" width="40" height="40" style="border-radius: 50%;">
+        {{user['user'].username}}
+        </td>
+      </a>     
+      <td>{{user['user'].flask_coin}}</td>
+      <td>{{user['posts']}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock content %}

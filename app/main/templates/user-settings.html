@@ -1,0 +1,73 @@
+{% extends "main.html" %}
+
+{% block content %}
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for message in messages %}
+    <ul class=flashes>
+        <li>
+            <div class="alert alert-dark error-message" role="alert">
+                {{ message }}
+            </div>
+        </li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+<div style="text-align: center;">
+    <img src="{{current_user.user_image}}" alt="pfp" width="180" height="180" style="border-radius: 50%;">
+    <div style="text-align: center; margin-top: 10px;" >
+        <form action="{{ url_for('main.change_pfp') }}" method="post" enctype="multipart/form-data">
+            <h1 style="text-align: center;">Edit Profile Pic</h1>
+            <!-- input hidden tag value csrf_token -->
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group" style="text-align: center; margin-left:40%; margin-right: 50%; width: 300px;">
+                <input type="file" name="profile_picture" class="form-control" id="formFile" required>
+                <label for="formFile" class="form-label">Upload New Profile Image</label>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</div>
+<div style="text-align: center;">
+    <h2>Who Can See Your Profile Information?</h2>
+    <form action="{{ url_for('main.change_privacy') }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-check">
+            {% if current_user.privacy == 'public' %}
+                <input class="form-check-input" type="radio" name="info_privacy" id="flexRadioDefault1" value="public" checked>
+            {% else %}
+                <input class="form-check-input" type="radio" name="info_privacy" id="flexRadioDefault1" value="public">
+            {% endif %}
+            <label class="form-check-label" for="flexRadioDefault1">
+            Public
+            </label>
+        </div>
+        <div class="form-check">
+            {% if current_user.privacy == 'followers' %}
+                <input class="form-check-input" type="radio" name="info_privacy" id="flexRadioDefault2" value="followers" checked>
+            {% else %}
+                <input class="form-check-input" type="radio" name="info_privacy" id="flexRadioDefault2" value="followers">
+            {% endif %}
+            <label class="form-check-label" for="flexRadioDefault2">
+            Only Followers
+            </label>
+        </div>
+        <div class="form-check">
+            {% if current_user.privacy == 'private' %}
+                <input class="form-check-input" type="radio" name="info_privacy" id="flexRadioDefault3" value="private" checked>
+            {% else %}
+                <input class="form-check-input" type="radio" name="info_privacy" id="flexRadioDefault3" value="private">
+            {% endif %}
+            <label class="form-check-label" for="flexRadioDefault3">
+            Private
+            </label>
+        </div>
+        <div class="form-group" style="text-align: center;">
+            <button class="btn btn-primary" type="submit">Change Privacy Settings</button>
+
+        </div>
+    </form>
+    
+</div>
+{% endblock content %}

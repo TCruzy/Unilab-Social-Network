@@ -1,0 +1,25 @@
+{% extends "main.html" %}
+
+{% block content %}
+<div class="word">
+    <h1>Guess The Word And Win 5 or 15 Flask Coin ♥</h1>
+    <h3>The Word Is </h3>
+    <h1 class="shuffled">{{shuffled_word}}</h1>
+    {% from "_formhelpers.html" import render_field %}
+    <form method="POST" action="{{ url_for('main.check_word', random_word=random_word) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="input-group mb-3" style="width:30%;margin-left:35%;">
+            <input type="text" class="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default" name="word" placeholder="Word">
+        </div>
+    </form>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class=flashes>
+            {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+</div>
+{% endblock content %}

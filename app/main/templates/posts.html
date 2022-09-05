@@ -1,0 +1,680 @@
+{% extends 'main.html' %}
+
+{% block content %}
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for message in messages %}
+    <ul class=flashes>
+        <li>
+            <div class="alert alert-dark error-message" role="alert">
+                {{ message }}
+            </div>
+        </li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+{% for post in all_post['vip_posts'] %}
+<div class="blog-post">
+        <div class="d-flex align-items-end flex-column">
+            <div class="dropdown" style="margin-right: 40px;">
+                <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                </a>
+              
+                {% if post['user_id'] == current_user.id %}
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                        <a class="dropdown-item" href="{{ url_for('main.edit_post', post_id=post['id']) }}">Edit Post</a>
+                        <a class="dropdown-item" href="" data-toggle="modal" data-target="#exampleModal{{post['id']}}">Delete Post</a>
+                    </div>
+                {% else %} 
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                        <a class="dropdown-item" href="#">Report Post</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div><p>post date : {{post['post_date']}}</p></div>
+        <div class="vip-post">VIP Post</div>
+        <a href="{{ url_for('main.users_profile', user_id=post['user_id']) }}">
+            <div class="blog-post-title">
+                <img src="{{post['user_image']}}" alt="pfp" width="50" height="50" style="border-radius: 50%">
+                <h2 style="font-weight: 700;">{{post['user_name']}}</h2>      
+            </div>        
+        </a>
+        
+        <div class="blog-post-body">
+            <h2 style="width: 100%;"> {{post['post_text']}}</h2>
+        </div>
+        <div class="post-image">
+            {% if post['post_image'] %}
+                <img src="{{post['post_image']}}" alt="img" width="70%" height="70%">
+            {% endif %}
+        </div>
+        
+            <form action="{{ url_for('api.like_post') }}" method="post" class='like-post{{post["id"]}}'>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type = "hidden" name = "postid" value = "{{post['id']}}" />
+                {% if post['likes_count'] != 0 %}
+                <div class="liked_by">
+                    <p style="margin-top:5px;">Liked By : </p>
+                    
+                    {% if post['likers']|length < 3 %}
+                        <a href="#" data-toggle="modal" data-target="#liked_by{{post['id']}}">
+                            <div style="font-size: 20px;">
+                                {% for user in post["likers"] %}
+                                    {{ user.username }}
+                                {% endfor %}
+                            </div>   
+                            
+                        </a>
+                    {% else %}
+                            <a href="#" data-toggle="modal" data-target="#liked_by{{post['id']}}">   
+                                <div style="font-size: 20px;">
+                                    {{post['likers'][0].username}},
+                                    {{post['likers'][1].username}},
+                                    and {{post['likers']|length - 2}} other
+                                </div>
+                                
+                            </a>
+    
+                    {% endif %} 
+                    
+                </div>
+                {% endif %}
+                <input type = "hidden" name = "page" value = "home" />
+                <div class="form-row align-items-center d-flex justify-content-center">      
+                <script>
+                    // if form is submitted class=like-post
+                    // then send get request to the url /like_post with argument postid
+                    // then console.log the response
+                    
+                    $('.like-post{{post["id"]}}').submit(function(e){
+                        e.preventDefault();
+                        $.ajax({
+                            type: 'GET',
+                            url: $(this).attr('action'),
+                            data: $(this).serialize(),
+                            success: function(response){
+                                // if response.liked_by_current_user is true then post['liked_by_me'] is true
+                                // else post['liked_by_me'] is false
+                                console.log(response.liked_by_current_user);
+                                if(!response.liked_by_current_user){
+                                    // get div element by classname=dislike then display none
+                                    // get p element by class=likes-amount then set text to response.post_likes_count
+                                    p_element = document.getElementsByClassName('likes-amount{{post["id"]}}')[0];
+                                    p_element.innerHTML = response.post_likes_count;
+                                    $('.unlike{{post["id"]}}').css('display', 'none');
+                                    $('.unlike-from-back{{post["id"]}}').css('display', 'none');
+                                    // get div element by classname=like then display block
+                                    $('.like{{post["id"]}}').css('display', 'block');
+
+                                }else{
+                                    p_element = document.getElementsByClassName('likes-amount{{post["id"]}}')[0];
+                                    p_element.innerHTML = response.post_likes_count;
+                                    // get div element by classname=like then display none
+                                    $('.like{{post["id"]}}').css('display', 'none');
+                                    $('.liked_from_back{{post["id"]}}').css('display', 'none');
+                                    // get div element by classname=dislike then display block
+                                    $('.unlike{{post["id"]}}').css('display', 'block');
+                                }
+                            }
+                        });
+                    });
+                </script>
+                {% if post['liked_by_me'] %} 
+                    
+                    <div class="col-auto unlike-from-back{{post['id']}}">
+                    <input type = "hidden" name = "like_status" value = "unlike" />
+                        <button type="submit" class="btn btn-primary mb-2" style="border-radius: 50px;background-color: rgb(125, 15, 15); 
+                            border-color: rgb(233, 83, 83);width: 50px; height: 50px;margin-top:10px;">
+                            <div style="position: absolute;
+                            top:50%;
+                            left:50%;
+                            transform: translate(-50%, -50%);margin-top:5px;">
+                            </div>
+                        </button>
+                    </div>
+                {% else %}
+                <div class="col-auto liked_from_back{{post['id']}}">
+                    <input type = "hidden" name = "like_status" value = "like" />
+                    <button type="submit" class="btn btn-primary mb-2" style="border-radius: 50px; width: 50px; height: 50px;margin-top:10px;">
+                        <div style="position: absolute;
+                        top:50%;
+                        left:50%;
+                        transform: translate(-50%, -50%);margin-top:5px;">
+                        </div>   
+                    </button>                       
+                </div>
+                {% endif %}
+                    <div class="col-auto unlike{{post['id']}}" style="display:none;">
+                        <input type = "hidden" name = "like_status" value = "unlike" />
+                        <button type="submit" class="btn btn-primary mb-2" style="border-radius: 50px;background-color: rgb(125, 15, 15); 
+                            border-color: rgb(233, 83, 83);width: 50px; height: 50px;margin-top:10px;">
+                            <div style="position: absolute;
+                            top:50%;
+                            left:50%;
+                            transform: translate(-50%, -50%);margin-top:5px;">
+                            </div>
+                        </button>
+                    </div>
+                    <div class="col-auto like{{post['id']}}" style="display:none;">
+                        <input type = "hidden" name = "like_status" value = "like" />
+                        <button type="submit" class="btn btn-primary mb-2" style="border-radius: 50px; width: 50px; height: 50px;margin-top:10px;">
+                            <div style="position: absolute;
+                            top:50%;
+                            left:50%;
+                            transform: translate(-50%, -50%);margin-top:5px;">
+                            </div>   
+                        </button>                       
+                    </div>       
+                </div>
+                <h5 class="reaction-amount"><span class='likes-amount{{post["id"]}}'>{{ post['likes_count'] }}</span> Reaction</h5>    
+            </form>
+    
+            <div id="liked_by{{post['id']}}" class="modal fade" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Liked By</h4>
+            
+                        </div>
+                        <div class="modal-body">
+                            <ol>
+                                {% for likers in post['likers'] %}
+                                    <li>
+                                        <div style="display: flex;
+                                        gap: 10px;
+                                        margin-top: 10px;">
+                                        <img src="{{likers.user_image}}" alt="pfp" width="40" height="40" style="border-radius: 50%;">
+                                        <h3><a href="{{ url_for('main.users_profile', user_id=likers.id) }}">{{likers.username}}</a></h3>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                                
+                            </ol>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+            
+                </div>
+            
+            </div>
+            
+    </div>
+    <div class="modal fade" id="exampleModal{{post['id']}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <div class="modal-header text-center">
+                <h5 class="modal-title w-100" id="exampleModalLabel">პოსტის წაშლა</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <br>
+                <br>
+                ნამდვილად გსურთ ამ ობიექტის წაშლა?
+
+            </div>
+            <div class="modal-footer d-flex justify-content-center">
+
+                <button type="button" class="btn btn-success action-buttons" data-dismiss="modal" >არა</button>
+                <form class="form-inline my-2 my-lg-0" action="{{ url_for('main.delete_post', post_id=post['id']) }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-danger action-buttons">კი</button>
+                </form>
+            
+            </div>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+{% for post in all_post['anonym_posts'] %}
+<div class="blog-post">
+        <div class="d-flex align-items-end flex-column">
+            <div class="dropdown" style="margin-right: 40px;">
+                <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                </a>
+              
+                {% if post['user_id'] == current_user.id %}
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                        <a class="dropdown-item" href="{{ url_for('main.edit_post', post_id=post['id']) }}">Edit Post</a>
+                        <a class="dropdown-item" href="" data-toggle="modal" data-target="#exampleModal{{post['id']}}">Delete Post</a>
+                    </div>
+                {% else %} 
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                        <a class="dropdown-item" href="#">Report Post</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div><p>post date : {{post['post_date']}}</p></div>
+        
+            {% if post['user_id'] == current_user.id %}
+                <a href="{{ url_for('main.users_profile', user_id=post['user_id']) }}">
+                    <div class="blog-post-title">
+                        <img src="{{post['user_image']}}" alt="pfp" width="50" height="50" style="border-radius: 50%">
+                        <h2 style="font-weight: 700;">{{post['user_name']}} as Anonymous</h2>        
+                    </div>
+                </a>
+            {% else %}
+                <a href="{{ url_for('main.anonymous') }}">
+                    <div class="blog-post-title">
+                        <img src="../static/pfp/anonym.webp" alt="pfp" width="50" height="50" style="border-radius: 50%">
+                        <h2 style="font-weight: 700;">Anonymous</h2>        
+                    </div>
+                </a>
+            {% endif %}        
+       
+        
+        <div class="blog-post-body">
+            <h2 style="width: 100%;"> {{post['post_text']}}</h2>
+        </div>
+        <div class="post-image">
+            {% if post['post_image'] %}
+                <img src="{{post['post_image']}}" alt="img" width="70%" height="70%">
+            {% endif %}
+        </div>
+        
+        
+            <form action="{{ url_for('api.like_post') }}" method="post" class='like-post{{post["id"]}}'>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type = "hidden" name = "postid" value = "{{post['id']}}" />
+                {% if post['likes_count'] != 0 %}
+                <div class="liked_by">
+                    <p style="margin-top:5px;">Liked By : </p>
+                    
+                    {% if post['likers']|length < 3 %}
+                        <a href="#" data-toggle="modal" data-target="#liked_by{{post['id']}}">
+                            <div style="font-size: 20px;">
+                                {% for user in post["likers"] %}
+                                    {{ user.username }}
+                                {% endfor %}
+                            </div>   
+                            
+                        </a>
+                    {% else %}
+                            <a href="#" data-toggle="modal" data-target="#liked_by{{post['id']}}">   
+                                <div style="font-size: 20px;">
+                                    {{post['likers'][0].username}},
+                                    {{post['likers'][1].username}},
+                                    and {{post['likers']|length - 2}} other
+                                </div>
+                                
+                            </a>
+    
+                    {% endif %} 
+                    
+                </div>
+                {% endif %}
+                <input type = "hidden" name = "page" value = "home" />
+                <div class="form-row align-items-center d-flex justify-content-center">      
+                <script>
+                    // if form is submitted class=like-post
+                    // then send get request to the url /like_post with argument postid
+                    // then console.log the response
+                    
+                    $('.like-post{{post["id"]}}').submit(function(e){
+                        e.preventDefault();
+                        $.ajax({
+                            type: 'GET',
+                            url: $(this).attr('action'),
+                            data: $(this).serialize(),
+                            success: function(response){
+                                // if response.liked_by_current_user is true then post['liked_by_me'] is true
+                                // else post['liked_by_me'] is false
+                                console.log(response.liked_by_current_user);
+                                if(!response.liked_by_current_user){
+                                    // get div element by classname=dislike then display none
+                                    // get p element by class=likes-amount then set text to response.post_likes_count
+                                    p_element = document.getElementsByClassName('likes-amount{{post["id"]}}')[0];
+                                    p_element.innerHTML = response.post_likes_count;
+                                    $('.unlike{{post["id"]}}').css('display', 'none');
+                                    $('.unlike-from-back{{post["id"]}}').css('display', 'none');
+                                    // get div element by classname=like then display block
+                                    $('.like{{post["id"]}}').css('display', 'block');
+
+                                }else{
+                                    p_element = document.getElementsByClassName('likes-amount{{post["id"]}}')[0];
+                                    p_element.innerHTML = response.post_likes_count;
+                                    // get div element by classname=like then display none
+                                    $('.like{{post["id"]}}').css('display', 'none');
+                                    $('.liked_from_back{{post["id"]}}').css('display', 'none');
+                                    // get div element by classname=dislike then display block
+                                    $('.unlike{{post["id"]}}').css('display', 'block');
+                                }
+                            }
+                        });
+                    });
+                </script>
+                {% if post['liked_by_me'] %} 
+                    
+                    <div class="col-auto unlike-from-back{{post['id']}}">
+                    <input type = "hidden" name = "like_status" value = "unlike" />
+                        <button type="submit" class="btn btn-primary mb-2" style="border-radius: 50px;background-color: rgb(125, 15, 15); 
+                            border-color: rgb(233, 83, 83);width: 50px; height: 50px;margin-top:10px;">
+                            <div style="position: absolute;
+                            top:50%;
+                            left:50%;
+                            transform: translate(-50%, -50%);margin-top:5px;">
+                            </div>
+                        </button>
+                    </div>
+                {% else %}
+                <div class="col-auto liked_from_back{{post['id']}}">
+                    <input type = "hidden" name = "like_status" value = "like" />
+                    <button type="submit" class="btn btn-primary mb-2" style="border-radius: 50px; width: 50px; height: 50px;margin-top:10px;">
+                        <div style="position: absolute;
+                        top:50%;
+                        left:50%;
+                        transform: translate(-50%, -50%);margin-top:5px;">
+                        </div>   
+                    </button>                       
+                </div>
+                {% endif %}
+                    <div class="col-auto unlike{{post['id']}}" style="display:none;">
+                        <input type = "hidden" name = "like_status" value = "unlike" />
+                        <button type="submit" class="btn btn-primary mb-2" style="border-radius: 50px;background-color: rgb(125, 15, 15); 
+                            border-color: rgb(233, 83, 83);width: 50px; height: 50px;margin-top:10px;">
+                            <div style="position: absolute;
+                            top:50%;
+                            left:50%;
+                            transform: translate(-50%, -50%);margin-top:5px;">
+                            </div>
+                        </button>
+                    </div>
+                    <div class="col-auto like{{post['id']}}" style="display:none;">
+                        <input type = "hidden" name = "like_status" value = "like" />
+                        <button type="submit" class="btn btn-primary mb-2" style="border-radius: 50px; width: 50px; height: 50px;margin-top:10px;">
+                            <div style="position: absolute;
+                            top:50%;
+                            left:50%;
+                            transform: translate(-50%, -50%);margin-top:5px;">
+                            </div>   
+                        </button>                       
+                    </div>       
+                </div>
+                <h5 class="reaction-amount"><span class='likes-amount{{post["id"]}}'>{{ post['likes_count'] }}</span> Reaction</h5>    
+            </form>
+    
+            <div id="liked_by{{post['id']}}" class="modal fade" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Liked By</h4>
+            
+                        </div>
+                        <div class="modal-body">
+                            <ol>
+                                {% for likers in post['likers'] %}
+                                    <li>
+                                        <div style="display: flex;
+                                        gap: 10px;
+                                        margin-top: 10px;">
+                                        <img src="{{likers.user_image}}" alt="pfp" width="40" height="40" style="border-radius: 50%;">
+                                        <h3><a href="{{ url_for('main.users_profile', user_id=likers.id) }}">{{likers.username}}</a></h3>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                                
+                            </ol>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+            
+                </div>
+            
+            </div>
+            
+    </div>
+    <div class="modal fade" id="exampleModal{{post['id']}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <div class="modal-header text-center">
+                <h5 class="modal-title w-100" id="exampleModalLabel">პოსტის წაშლა</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <br>
+                <br>
+                ნამდვილად გსურთ ამ ობიექტის წაშლა?
+
+            </div>
+            <div class="modal-footer d-flex justify-content-center">
+
+                <button type="button" class="btn btn-success action-buttons" data-dismiss="modal" >არა</button>
+                <form class="form-inline my-2 my-lg-0" action="{{ url_for('main.delete_post', post_id=post['id']) }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-danger action-buttons">კი</button>
+                </form>
+            
+            </div>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+{% for post in all_post['normal_posts'] %}
+<div class="blog-post">
+        <div class="d-flex align-items-end flex-column">
+            <div class="dropdown" style="margin-right: 40px;">
+                <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                </a>
+              
+                {% if post['user_id'] == current_user.id %}
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                        <a class="dropdown-item" href="{{ url_for('main.edit_post', post_id=post['id']) }}">Edit Post</a>
+                        <a class="dropdown-item" href="" data-toggle="modal" data-target="#exampleModal{{post['id']}}">Delete Post</a>
+                    </div>
+                {% else %} 
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                        <a class="dropdown-item" href="#">Report Post</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div><p>post date : {{post['post_date']}}</p></div>
+        <div class="norm-post">Normal Post</div>
+        <a href="{{ url_for('main.users_profile', user_id=post['user_id']) }}">
+            <div class="blog-post-title">
+                <img src="{{post['user_image']}}" alt="pfp" width="50" height="50" style="border-radius: 50%">
+                <h2 style="font-weight: 700;">{{post['user_name']}}</h2>        
+            </div>        
+        </a>
+        
+        <div class="blog-post-body">
+            <h2 style="width: 100%;"> {{post['post_text']}}</h2>
+        </div>
+        <div class="post-image">
+            {% if post['post_image'] %}
+                <img src="{{post['post_image']}}" alt="img" width="70%" height="60%">
+            {% endif %}
+        </div>
+        
+        
+            <form action="{{ url_for('api.like_post') }}" method="post" class='like-post{{post["id"]}}'>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type = "hidden" name = "postid" value = "{{post['id']}}" />
+                {% if post['likes_count'] != 0 %}
+                <div class="liked_by">
+                    <p style="margin-top:5px;">Liked By : </p>
+                    
+                    {% if post['likers']|length < 3 %}
+                        <a href="#" data-toggle="modal" data-target="#liked_by{{post['id']}}">
+                            <div style="font-size: 20px;">
+                                {% for user in post["likers"] %}
+                                    {{ user.username }}
+                                {% endfor %}
+                            </div>   
+                            
+                        </a>
+                    {% else %}
+                            <a href="#" data-toggle="modal" data-target="#liked_by{{post['id']}}">   
+                                <div style="font-size: 20px;">
+                                    {{post['likers'][0].username}},
+                                    {{post['likers'][1].username}},
+                                    and {{post['likers']|length - 2}} other
+                                </div>
+                                
+                            </a>
+    
+                    {% endif %} 
+                    
+                </div>
+                {% endif %}
+                <input type = "hidden" name = "page" value = "home" />
+                <div class="form-row align-items-center d-flex justify-content-center">      
+                <script>
+                    // if form is submitted class=like-post
+                    // then send get request to the url /like_post with argument postid
+                    // then console.log the response
+                    
+                    $('.like-post{{post["id"]}}').submit(function(e){
+                        e.preventDefault();
+                        $.ajax({
+                            type: 'GET',
+                            url: $(this).attr('action'),
+                            data: $(this).serialize(),
+                            success: function(response){
+                                // if response.liked_by_current_user is true then post['liked_by_me'] is true
+                                // else post['liked_by_me'] is false
+                                console.log(response.liked_by_current_user);
+                                if(!response.liked_by_current_user){
+                                    // get div element by classname=dislike then display none
+                                    // get p element by class=likes-amount then set text to response.post_likes_count
+                                    p_element = document.getElementsByClassName('likes-amount{{post["id"]}}')[0];
+                                    p_element.innerHTML = response.post_likes_count;
+                                    $('.unlike{{post["id"]}}').css('display', 'none');
+                                    $('.unlike-from-back{{post["id"]}}').css('display', 'none');
+                                    // get div element by classname=like then display block
+                                    $('.like{{post["id"]}}').css('display', 'block');
+
+                                }else{
+                                    p_element = document.getElementsByClassName('likes-amount{{post["id"]}}')[0];
+                                    p_element.innerHTML = response.post_likes_count;
+                                    // get div element by classname=like then display none
+                                    $('.like{{post["id"]}}').css('display', 'none');
+                                    $('.liked_from_back{{post["id"]}}').css('display', 'none');
+                                    // get div element by classname=dislike then display block
+                                    $('.unlike{{post["id"]}}').css('display', 'block');
+                                }
+                            }
+                        });
+                    });
+                </script>
+                {% if post['liked_by_me'] %} 
+                    
+                    <div class="col-auto unlike-from-back{{post['id']}}">
+                    <input type = "hidden" name = "like_status" value = "unlike" />
+                        <button type="submit" class="btn btn-primary mb-2" style="border-radius: 50px;background-color: rgb(125, 15, 15); 
+                            border-color: rgb(233, 83, 83);width: 50px; height: 50px;margin-top:10px;">
+                            <div style="position: absolute;
+                            top:50%;
+                            left:50%;
+                            transform: translate(-50%, -50%);margin-top:5px;">
+                            </div>
+                        </button>
+                    </div>
+                {% else %}
+                <div class="col-auto liked_from_back{{post['id']}}">
+                    <input type = "hidden" name = "like_status" value = "like" />
+                    <button type="submit" class="btn btn-primary mb-2" style="border-radius: 50px; width: 50px; height: 50px;margin-top:10px;">
+                        <div style="position: absolute;
+                        top:50%;
+                        left:50%;
+                        transform: translate(-50%, -50%);margin-top:5px;">
+                        </div>   
+                    </button>                       
+                </div>
+                {% endif %}
+                    <div class="col-auto unlike{{post['id']}}" style="display:none;">
+                        <input type = "hidden" name = "like_status" value = "unlike" />
+                        <button type="submit" class="btn btn-primary mb-2" style="border-radius: 50px;background-color: rgb(125, 15, 15); 
+                            border-color: rgb(233, 83, 83);width: 50px; height: 50px;margin-top:10px;">
+                            <div style="position: absolute;
+                            top:50%;
+                            left:50%;
+                            transform: translate(-50%, -50%);margin-top:5px;">
+                            </div>
+                        </button>
+                    </div>
+                    <div class="col-auto like{{post['id']}}" style="display:none;">
+                        <input type = "hidden" name = "like_status" value = "like" />
+                        <button type="submit" class="btn btn-primary mb-2" style="border-radius: 50px; width: 50px; height: 50px;margin-top:10px;">
+                            <div style="position: absolute;
+                            top:50%;
+                            left:50%;
+                            transform: translate(-50%, -50%);margin-top:5px;">
+                            </div>   
+                        </button>                       
+                    </div>       
+                </div>
+                <h5 class="reaction-amount"><span class='likes-amount{{post["id"]}}'>{{ post['likes_count'] }}</span> Reaction</h5>    
+            </form>
+    
+            <div id="liked_by{{post['id']}}" class="modal fade" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Liked By</h4>
+            
+                        </div>
+                        <div class="modal-body">
+                            <ol>
+                                {% for likers in post['likers'] %}
+                                    <li>
+                                        <div style="display: flex;
+                                        gap: 10px;
+                                        margin-top: 10px;">
+                                        <img src="{{likers.user_image}}" alt="pfp" width="40" height="40" style="border-radius: 50%;">
+                                        <h3><a href="{{ url_for('main.users_profile', user_id=likers.id) }}">{{likers.username}}</a></h3>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                                
+                            </ol>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+            
+                </div>
+            
+            </div>
+            
+    </div>
+<div class="modal fade" id="exampleModal{{post['id']}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <div class="modal-header text-center">
+                <h5 class="modal-title w-100" id="exampleModalLabel">პოსტის წაშლა</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <br>
+                <br>
+                ნამდვილად გსურთ ამ ობიექტის წაშლა?
+
+            </div>
+            <div class="modal-footer d-flex justify-content-center">
+
+                <button type="button" class="btn btn-success action-buttons" data-dismiss="modal" >არა</button>
+                <form class="form-inline my-2 my-lg-0" action="{{ url_for('main.delete_post', post_id=post['id']) }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-danger action-buttons">კი</button>
+                </form>
+            
+            </div>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+{% endblock %}
