@@ -33,9 +33,9 @@
     
             <nav class="main-navigation">
                 
-                <li><a href="{{ url_for('main.play_for_earn') }}">Earn Flask Coin </a></li>
-
+            
                 {% if current_user.username %}
+                    <li><a href="{{ url_for('main.play_for_earn') }}">Earn Flask Coin </a></li>
                     <li><a href="/create-post" data-toggle="modal" data-target="#mymodal">Create Post</a></li>
                     <li><a href="/leaderboard">Leaderboard</a></li>
                     <li><a href="{{ url_for('main.user_profile') }}">{{current_user.username}}</a></li>

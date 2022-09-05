@@ -490,6 +490,7 @@ def following(user_id):
         return redirect(url_for('main.users_profile', user_id=user_id))
         
 @main_bp.route('/play-for-earn')
+@login_required
 def play_for_earn():
     random_50_small_english_word = [
         'shallow', 'sudden', 'suspicious', 'sweater', 'swim', 'tall', 'taste', 'tender',
@@ -517,6 +518,7 @@ def play_for_earn():
         return render_template('play-for-earn.html', random_word=random_word, shuffled_word=shuffled_word)
 
 @main_bp.route('/check-word/<string:random_word>', methods=['GET', 'POST'])
+@login_required
 def check_word(random_word):
     word = request.form.get('word')
     random_50_small_english_word = [
