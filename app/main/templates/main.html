@@ -17,7 +17,7 @@
 <body>
     <header class="main-header">
         <div class="container">
-            <h2 class="socinho" >SOCINHO</h2>
+            <li class="socinho" ><a href="{{ url_for('main.index') }}">SOCINHO</a> </li>
             {% if current_user.is_authenticated %}
                 <form action="{{ url_for('main.search') }}" method="post">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
