@@ -8,6 +8,7 @@ from flask_login import UserMixin
 # Posts - Id , user id, post text, post image, likers, post type(normal, anonym, VIP)
 # Follows - Id, following to id, following from id,  following status (active, disabled) 
 
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True)
@@ -17,11 +18,12 @@ class User(db.Model, UserMixin):
     flask_coin = db.Column(db.Integer, default=100)
     privacy = db.Column(db.String(50), default='public')
     posts = db.relationship('Post', backref='user', lazy=True, cascade="all, delete-orphan")
-    followers = db.relationship('Follow', foreign_keys='Follow.following_to_id', backref='following_to', lazy='dynamic', cascade="all, delete-orphan")
-    following = db.relationship('Follow', foreign_keys='Follow.following_from_id', backref='following_from', lazy='dynamic', cascade="all, delete-orphan")
+    followers = db.relationship('Follow', foreign_keys='Follow.following_to_id', backref='following_to', lazy='dynamic', cascade="all, delete-orphan", uselist=True)
+    following = db.relationship('Follow', foreign_keys='Follow.following_from_id', backref='following_from', lazy='dynamic', cascade="all, delete-orphan", uselist=True)
+    likes = db.relationship('Like', backref='user', lazy=True, cascade="all, delete-orphan")
 
     def __repr__(self):
-        return f"Username {self.username}', '{self.email}')"
+        return f"{self.username}"
     
     def __init__(self, username, email, password):
         self.username = username
@@ -108,6 +110,8 @@ class Like(db.Model):
     like_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     like_status = db.Column(db.String(10), nullable=False, default='active')
 
+    def __repr__(self):
+        return f"Like('{self.post_id}', '{self.user_id}', '{self.like_date}', '{self.like_status}')"
     
     @property
     def serialize(self):
