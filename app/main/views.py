@@ -5,6 +5,7 @@ from app.extensions import login_manager
 from app.main.models import User, Follow, Post, Like
 from app.main.forms import LoginForm, Registrationform
 from app.main.models import User
+from flask_bcrypt import Bcrypt
 import os
 import uuid
 
@@ -122,10 +123,17 @@ def login():
         if loginform.validate_on_submit():
             email = loginform.email.data
             password = loginform.password.data
-            user = User.query.filter_by(email=email, password=password).first()
+            user = User.query.filter_by(email=email).first()
             if user is not None:
-                login_user(user)
-                return redirect(url_for('main.index'))
+                password_from_db = user.password
+                check_password = Bcrypt().check_password_hash(password_from_db, password)
+                if check_password:
+                    login_user(user)
+                    return redirect(url_for('main.index'))
+                else:
+                    flash('Invalid password')
+                    return redirect(url_for('main.login'))
+                    
             else:
                 flash('Invalid username or password')
                 return redirect(url_for('main.login'))
@@ -143,13 +151,20 @@ def signup():
         username = registrationform.username.data
         email = registrationform.email.data
         password = registrationform.password.data
-        user = User(username=username, password=password, email=email)
+        hashed_password = Bcrypt().generate_password_hash(password).decode('utf-8')
+        user = User(username=username, password=hashed_password, email=email)
         user.create()
         flash('თქვენ წარმატებით დარეგისტრირდით', 'success')
         return redirect(url_for('main.login'))
     else:
         return render_template('auth.html', loginform=LoginForm(), registrationform=registrationform)
 
+@main_bp.route('/delete-all-users', methods=['GET'])
+def delete_all_users():
+    users = User.query.all()
+    for user in users:
+        user.delete()
+    return redirect(url_for('main.index'))
 
 @main_bp.route('/create-post', methods=['POST'])
 @login_required

@@ -16,7 +16,9 @@ class User(db.Model, UserMixin):
     user_image = db.Column(db.String(80), default='static/pfp/default.png')
     flask_coin = db.Column(db.Integer, default=100)
     privacy = db.Column(db.String(50), default='public')
-    
+    posts = db.relationship('Post', backref='user', lazy=True, cascade="all, delete-orphan")
+    followers = db.relationship('Follow', foreign_keys='Follow.following_to_id', backref='following_to', lazy='dynamic', cascade="all, delete-orphan")
+    following = db.relationship('Follow', foreign_keys='Follow.following_from_id', backref='following_from', lazy='dynamic', cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"Username {self.username}', '{self.email}')"
