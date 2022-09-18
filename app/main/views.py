@@ -33,8 +33,7 @@ def load_user(user_id):
     return User.query.get(user_id)
 
 # Simple index page route
-@main_bp.route('/')
-@main_bp.route('/home')
+
 @login_required
 def index():
     # get all posts sorted by post_type and amount of likers
@@ -113,7 +112,7 @@ def index():
     #
     return render_template('posts.html', all_post=posts_data)
 
-@main_bp.route('/login', methods=['GET', 'POST'])
+
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
@@ -142,7 +141,7 @@ def login():
 
     return render_template('auth.html', loginform=loginform, registrationform=registrationform)
 
-@main_bp.route('/signup', methods=['POST'])
+
 def signup():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
@@ -159,14 +158,14 @@ def signup():
     else:
         return render_template('auth.html', loginform=LoginForm(), registrationform=registrationform)
 
-@main_bp.route('/delete-all-users', methods=['GET'])
-def delete_all_users():
-    users = User.query.all()
-    for user in users:
-        user.delete()
-    return redirect(url_for('main.index'))
+# @main_bp.route('/delete-all-users', methods=['GET'])
+# def delete_all_users():
+#     users = User.query.all()
+#     for user in users:
+#         user.delete()
+#     return redirect(url_for('main.index'))
 
-@main_bp.route('/create-post', methods=['POST'])
+
 @login_required
 def create_post():
     vip_post_price = 100
@@ -234,7 +233,7 @@ def create_post():
             return redirect(url_for('main.index'))
     return render_template('posts.html')
 
-@main_bp.route('/user-profile')
+
 @login_required
 def user_profile():
     curr_user_liked_posts = Like.query.filter_by(user_id=current_user.id, like_status='active').all() # დალოგინებულმა იუზერმა რომელი პოსტებიც დაალაიქა
@@ -253,13 +252,13 @@ def user_profile():
                            curr_user_followers=curr_user_followers,
                            curr_user_following=curr_user_following)
 
-@main_bp.route('/user-settings', methods=['GET', 'POST'])
 @login_required
 def user_settings():
     if request.method == 'GET':
         return render_template('user-settings.html')
 
-@main_bp.route('/users-profile/<int:user_id>', methods=['GET', 'POST'])
+
+
 @login_required
 def users_profile(user_id):
     if user_id == current_user.id:
@@ -285,7 +284,7 @@ def users_profile(user_id):
                            current_user_following=current_user_following, user_followers_ids=user_followers_ids)   
 
 
-@main_bp.route('/change_pfp', methods=['GET', 'POST'])
+
 @login_required
 def change_pfp():
     if request.method == 'POST':
@@ -303,7 +302,8 @@ def change_pfp():
             flash('Please select a profile picture')
             return redirect(url_for('main.user_settings'))
 
-@main_bp.route('/delete_post/<int:post_id>', methods=['GET', 'POST'])
+
+
 def delete_post(post_id):
     if request.method == 'POST':
         post = Post.query.filter_by(id=post_id).first()
@@ -316,7 +316,7 @@ def delete_post(post_id):
             return redirect(url_for('main.index'))
 
 
-@main_bp.route('/change_privacy', methods=['GET', 'POST'])
+
 @login_required
 def change_privacy():
     if request.method == 'POST':
@@ -334,7 +334,9 @@ def change_privacy():
 # edit post view, takes post_id as parameter
 # then take poster_type and post_content from form
 # then return edit-post.html
-@main_bp.route('/edit-post/<int:post_id>', methods=['GET', 'POST'])
+
+
+
 @login_required
 def edit_post(post_id):
     if request.method == 'GET':
@@ -439,7 +441,8 @@ def edit_post(post_id):
                 post.update()
                 return redirect(url_for('main.index'))
             
-@main_bp.route('/search', methods=['GET', 'POST'])
+
+
 @login_required
 def search():
     if request.method == 'POST':
@@ -467,7 +470,7 @@ def search():
             return render_template('search-name.html', users=users)
     return render_template('search.html')
 
-@main_bp.route('/leaderboard')
+
 @login_required
 def leaderboard():
     # get top 5 user by flask_coin.desc
@@ -481,7 +484,9 @@ def leaderboard():
         })
     return render_template('leaderboard.html', users=user_data)
 
-@main_bp.route('/following/<int:user_id>', methods=['GET', 'POST'])
+
+
+
 @login_required
 def following(user_id):
     if user_id == current_user.id:
@@ -509,7 +514,8 @@ def following(user_id):
         follow.update()
         return redirect(url_for('main.users_profile', user_id=user_id))
         
-@main_bp.route('/play-for-earn')
+
+
 @login_required
 def play_for_earn():
     random_50_small_english_word = [
@@ -537,7 +543,7 @@ def play_for_earn():
         shuffled_word = ''.join(random.sample(random_word, len(random_word)))
         return render_template('play-for-earn.html', random_word=random_word, shuffled_word=shuffled_word)
 
-@main_bp.route('/check-word/<string:random_word>', methods=['GET', 'POST'])
+
 @login_required
 def check_word(random_word):
     word = request.form.get('word')
@@ -578,14 +584,14 @@ def check_word(random_word):
    
    
        
-@main_bp.route('/anonymous')
+
 @login_required
 def anonymous():
     return render_template('anonymous.html')
         
 
 # Logout route
-@main_bp.route('/logout')
+
 @login_required
 def logout():
     logout_user()

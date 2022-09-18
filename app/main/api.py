@@ -5,7 +5,7 @@ from app.main.models import Post, User, Like
 
 bp_for_api = Blueprint('api', __name__, url_prefix='/api')
 
-@bp_for_api.route('/like-post', methods=['POST','GET'])
+
 def like_post():
 
     post_id = request.args.get('postid')
@@ -68,7 +68,7 @@ def like_post():
             post_likes_count = Like.query.filter_by(post_id=post_id, like_status='active').count()
             return jsonify(liked_by_current_user=True, post_likes_count=post_likes_count)
 
-@bp_for_api.route('/get-balance', methods=['POST','GET'])
+
 @login_required
 def get_balance():
     return jsonify(user_balance=current_user.flask_coin)
