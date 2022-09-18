@@ -39,7 +39,7 @@
                     <li><a href="/create-post" data-toggle="modal" data-target="#mymodal">Create Post</a></li>
                     <li><a href="/leaderboard">Leaderboard</a></li>
                     <li><a href="{{ url_for('main.user_profile') }}">{{current_user.username}}</a></li>
-                    <li><p class="balance" style="margin: 0">Balance : {{ current_user.flask_coin }}</p>
+                    <li><p class="balance" style="margin: 0">Flask Coin : {{ current_user.flask_coin }}</p>
 
                 {% endif %}
             </nav>
@@ -132,7 +132,7 @@
         setInterval(function () {
             $.get("{{url_for('api.get_balance')}}", function (data) {
                 console.log(data);
-                $(".balance").text("Balance : " + data.user_balance);
+                $(".balance").text("Flask Coin : " + data.user_balance);
             });
         }, 20000);
     </script>

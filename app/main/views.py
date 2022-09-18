@@ -180,7 +180,7 @@ def create_post():
     else:
         if post_type == 'vip':
             if current_user.flask_coin < vip_post_price:
-                flash('You do not have enough balance to create a vip post')
+                flash('You do not have enough Flask Coin to create a vip post')
                 return redirect(url_for('main.index'))
             loggined_user = User.query.filter_by(id=current_user.id).first()
             loggined_user.flask_coin -= vip_post_price
@@ -198,7 +198,7 @@ def create_post():
             return redirect(url_for('main.index'))
         elif post_type == 'anonym':
             if current_user.flask_coin < anonym_post_price:
-                flash('You do not have enough balance to create a anonym post')
+                flash('You do not have enough Flask Coin to create a anonym post')
                 return redirect(url_for('main.index'))
             loggined_user = User.query.filter_by(id=current_user.id).first()
             loggined_user.flask_coin -= anonym_post_price
@@ -216,7 +216,7 @@ def create_post():
             return redirect(url_for('main.index'))
         elif post_type == 'normal':
             if current_user.flask_coin < normal_post_price:
-                flash('You do not have enough balance to create a normal post')
+                flash('You do not have enough Flask Coin to create a normal post')
                 return redirect(url_for('main.index'))
             loggined_user = User.query.filter_by(id=current_user.id).first()
             loggined_user.flask_coin -= normal_post_price
@@ -447,6 +447,7 @@ def search():
         search_filter = request.form.get('search_filter')
         if search_filter == 'posts':
             if not search_text:
+                flash('Please enter search text')
                 return redirect(url_for('main.index'))
             posts = Post.query.filter(Post.post_text.like(f'%{search_text}%')).all()
             post_data = []
@@ -459,11 +460,15 @@ def search():
                 
             return render_template('search-post.html', posts=post_data)
         elif search_filter == 'users':
+            if not search_text:
+                flash('Please enter search text')
+                return redirect(url_for('main.index'))
             users = User.query.filter(User.username.like(f'%{search_text}%')).all()
             return render_template('search-name.html', users=users)
     return render_template('search.html')
 
 @main_bp.route('/leaderboard')
+@login_required
 def leaderboard():
     # get top 5 user by flask_coin.desc
     users = User.query.order_by(User.flask_coin.desc()).limit(5).all()

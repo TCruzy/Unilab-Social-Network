@@ -38,9 +38,9 @@ def register_blueprints(application):
         application.register_blueprint(bp)
         
 def admim_extensions(app):
-    adminka.add_view(UserView(User, db.session, name='Users', category='Models'))
-    adminka.add_view(PostView(Post, db.session, name='Posts', category='Models'))
-    adminka.add_view(LikesView(Like, db.session, name='Likes', category='Models'))
-    adminka.add_view(FollowsView(Follow, db.session, name='Follows', category='Models'))
-    adminka.add_view(FileAdmin(static_folder, '/static/', name='Static Files'))
+    adminka.add_view(UserView(User, db.session, name='მომხმარებლები', category='მთავარი მოდელები'))
+    adminka.add_view(PostView(Post, db.session, name='პოსტები', category='მთავარი მოდელები'))
+    adminka.add_view(LikesView(Like, db.session, name='ლაიქები', category='მთავარი მოდელები'))
+    adminka.add_view(FollowsView(Follow, db.session, name='მიმდევრები', category='მთავარი მოდელები'))
+    adminka.add_view(FileAdmin(static_folder, '/static/', name='სტატიკური ფაილები'))
     adminka.init_app(app)
